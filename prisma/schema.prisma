@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organizer {
+  id       String @id @default(cuid())
+  username String @unique
+  password String
+}
+
+model Raffle {
+  id            String    @id @default(cuid())
+  nombre        String
+  fechaSorteo   DateTime
+  whatsapp      String
+  totalNumeros  Int
+  precioBoleto  Float     @default(0)
+  tickets       Ticket[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum TicketStatus {
+  DISPONIBLE
+  PENDIENTE
+  PAGADO
+}
+
+model Ticket {
+  id            String       @id @default(cuid())
+  numero        String
+  estatus       TicketStatus @default(DISPONIBLE)
+  fechaApartado DateTime?
+  raffleId      String
+  raffle        Raffle       @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  participantId String?
+  participant   Participant? @relation(fields: [participantId], references: [id])
+
+  @@unique([raffleId, numero])
+}
+
+model Participant {
+  id             String   @id @default(cuid())
+  nombreCompleto String
+  telefono       String
+  domicilio      String
+  tickets        Ticket[]
+  createdAt      DateTime @default(now())
+}
