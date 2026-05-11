@@ -13,8 +13,9 @@ import {
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { marcarComoPagado } from "@/actions/tickets";
-import { TicketStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
+
+type TicketStatus = "DISPONIBLE" | "PENDIENTE" | "PAGADO";
 
 type TicketRow = {
   id: string;
@@ -86,7 +87,7 @@ export default function AdminTicketTable({ raffleId, tickets }: Props) {
       width: 150,
       sortable: false,
       renderCell: (params: GridRenderCellParams<TicketRow>) => {
-        if (params.row.estatus !== TicketStatus.PENDIENTE) return null;
+        if (params.row.estatus !== "PENDIENTE") return null;
         return (
           <Tooltip title="Marcar como pagado">
             <span>
@@ -113,7 +114,7 @@ export default function AdminTicketTable({ raffleId, tickets }: Props) {
     },
   ];
 
-  const rows = tickets.filter((t) => t.estatus !== TicketStatus.DISPONIBLE);
+  const rows = tickets.filter((t) => t.estatus !== "DISPONIBLE");
 
   return (
     <>
