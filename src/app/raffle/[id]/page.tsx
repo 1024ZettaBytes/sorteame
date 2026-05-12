@@ -64,7 +64,7 @@ export default async function PublicRafflePage({ params }: Props) {
 
         {/* Stats */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          {[
+          {/*[
             { label: "Total", value: total, color: "default" as const },
             { label: "Disponibles", value: disponibles, color: "default" as const },
           ].map(({ label, value, color }) => (
@@ -78,14 +78,14 @@ export default async function PublicRafflePage({ params }: Props) {
                 </CardContent>
               </Card>
             </Grid>
-          ))}
+          ))*/}
           <Grid size={{ xs: 12 }}>
             <Card sx={{ bgcolor: "primary.main", color: "primary.contrastText" }}>
               <CardContent sx={{ textAlign: "center", py: 1.5 }}>
                 <Typography variant="h5" sx={{ fontWeight: 700 }}>
                   {raffle.precioBoleto.toLocaleString("es-MX", { style: "currency", currency: "MXN" })}
                 </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.85 }}>por boleto</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.85 }}>x 1 boleto</Typography>
               </CardContent>
             </Card>
           </Grid>
