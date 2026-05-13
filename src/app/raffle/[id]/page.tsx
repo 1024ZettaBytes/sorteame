@@ -4,10 +4,13 @@ import {
   Box,
   Card,
   CardContent,
+  Chip,
   Divider,
   Grid,
+  LinearProgress,
   Typography,
 } from "@mui/material";
+import { TicketStatus } from "@prisma/client";
 import RaffleParticipantView from "@/components/RaffleParticipantView";
 
 export const dynamic = "force-dynamic";
@@ -29,9 +32,9 @@ export default async function PublicRafflePage({ params }: Props) {
 
   if (!raffle) notFound();
 
-  //const total = raffle.tickets.length;
-  //const disponibles = raffle.tickets.filter((t) => t.estatus === TicketStatus.DISPONIBLE).length;
-  //const vendidosPct = total > 0 ? Math.round(((total - disponibles) / total) * 100) : 0;
+  const total = raffle.tickets.length;
+  const disponibles = raffle.tickets.filter((t) => t.estatus === TicketStatus.DISPONIBLE).length;
+  const vendidosPct = total > 0 ? Math.round(((total - disponibles) / total) * 100) : 0;
 
   return (
     <Box
@@ -61,7 +64,7 @@ export default async function PublicRafflePage({ params }: Props) {
 
         {/* Stats */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          {/*[
+          {[
             { label: "Total", value: total, color: "default" as const },
             { label: "Disponibles", value: disponibles, color: "default" as const },
           ].map(({ label, value, color }) => (
@@ -75,20 +78,20 @@ export default async function PublicRafflePage({ params }: Props) {
                 </CardContent>
               </Card>
             </Grid>
-          ))*/}
+          ))}
           <Grid size={{ xs: 12 }}>
             <Card sx={{ bgcolor: "primary.main", color: "primary.contrastText" }}>
               <CardContent sx={{ textAlign: "center", py: 1.5 }}>
                 <Typography variant="h5" sx={{ fontWeight: 700 }}>
                   {raffle.precioBoleto.toLocaleString("es-MX", { style: "currency", currency: "MXN" })}
                 </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.85 }}>x 1 boleto</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.85 }}>por boleto</Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        {/* Progress 
+        {/* Progress */}
         <Box sx={{ mb: 4 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
             <Typography variant="body2" color="text.secondary">
@@ -103,7 +106,7 @@ export default async function PublicRafflePage({ params }: Props) {
             value={vendidosPct}
             sx={{ height: 10, borderRadius: 5 }}
           />
-        </Box>*/}
+        </Box>
 
         <Divider sx={{ mb: 3 }} />
 

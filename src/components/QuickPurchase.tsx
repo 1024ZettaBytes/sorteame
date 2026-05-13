@@ -5,7 +5,7 @@ import {
   Alert,
   Box,
   Button,
-  ButtonGroup,
+  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -20,7 +20,7 @@ import ShuffleIcon from "@mui/icons-material/Shuffle";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { apartarNumeros, getRandomAvailableTickets } from "@/actions/tickets";
-import { buildWhatsAppLink } from "@/lib/utils";
+import { buildWhatsAppLink, DISCOUNT_TIERS, calcBulkTotal, getDiscountPct } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
 type Props = {
@@ -35,8 +35,6 @@ type ParticipantData = {
   telefono: string;
   domicilio: string;
 };
-
-const QUICK_COUNTS = [1, 5, 10, 20];
 
 export default function QuickPurchase({ raffleId, raffleName, whatsapp, precioBoleto }: Props) {
   const router = useRouter();
@@ -112,24 +110,41 @@ export default function QuickPurchase({ raffleId, raffleName, whatsapp, precioBo
       <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
         Selección rápida
       </Typography>
-      <ButtonGroup variant="outlined" size="large" sx={{ mb: 2 }}>
-        {QUICK_COUNTS.map((count) => (
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1.5, mb: 2 }}>
+        {DISCOUNT_TIERS.map(({ count, discountPct }) => (
           <Button
             key={count}
+            variant="outlined"
             onClick={() => handleQuickSelect(count)}
             disabled={loadingCount !== null}
-            startIcon={
-              loadingCount === count ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : (
-                <ShuffleIcon />
-              )
-            }
+            sx={{ flexDirection: "column", alignItems: "center", py: 1.5, gap: 0.5 }}
           >
-            {count}
+            {loadingCount === count ? (
+              <CircularProgress size={20} />
+            ) : (
+              <>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <ShuffleIcon sx={{ fontSize: 16 }} />
+                  <Typography component="span" sx={{ fontWeight: 700, fontSize: 15 }}>
+                    {count} {count === 1 ? "boleto" : "boletos"}
+                  </Typography>
+                </Box>
+                {precioBoleto > 0 && (
+                  <Typography component="span" variant="body2" sx={{ fontWeight: 600, color: "primary.main" }}>
+                    {calcBulkTotal(count, precioBoleto).toLocaleString("es-MX", {
+                      style: "currency",
+                      currency: "MXN",
+                    })}
+                  </Typography>
+                )}
+                {discountPct > 0 && (
+                  <Chip label={`-${discountPct}%`} color="success" size="small" sx={{ height: 18, fontSize: 11 }} />
+                )}
+              </>
+            )}
           </Button>
         ))}
-      </ButtonGroup>
+      </Box>
 
       {error && (
         <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setError(null)}>
@@ -192,6 +207,39 @@ export default function QuickPurchase({ raffleId, raffleName, whatsapp, precioBo
             <Typography variant="body2" color="text.secondary">
               Números a apartar: <strong>{selectedTickets.join(", ")}</strong>
             </Typography>
+            {precioBoleto > 0 && (
+              <Box sx={{ bgcolor: "grey.100", borderRadius: 1, p: 1.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                  <Typography variant="body1" sx={{ fontWeight: 700, color: "primary.main" }}>
+                    Total a pagar:{" "}
+                    {calcBulkTotal(selectedTickets.length, precioBoleto).toLocaleString("es-MX", {
+                      style: "currency",
+                      currency: "MXN",
+                    })}
+                  </Typography>
+                  {getDiscountPct(selectedTickets.length) > 0 && (
+                    <Chip
+                      label={`-${getDiscountPct(selectedTickets.length)}%`}
+                      color="success"
+                      size="small"
+                    />
+                  )}
+                </Box>
+                {getDiscountPct(selectedTickets.length) > 0 && (
+                  <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
+                    Sin descuento:{" "}
+                    {(selectedTickets.length * precioBoleto).toLocaleString("es-MX", {
+                      style: "currency",
+                      currency: "MXN",
+                    })}
+                  </Typography>
+                )}
+                <Typography variant="caption" color="text.secondary">
+                  {selectedTickets.length} boleto{selectedTickets.length !== 1 ? "s" : ""} ×{" "}
+                  {precioBoleto.toLocaleString("es-MX", { style: "currency", currency: "MXN" })} c/u
+                </Typography>
+              </Box>
+            )}
             <Divider />
             <TextField
               label="Nombre completo"
@@ -255,6 +303,24 @@ export default function QuickPurchase({ raffleId, raffleName, whatsapp, precioBo
           <Typography variant="body2">
             Tus números: <strong>{successData.tickets.join(", ")}</strong>
           </Typography>
+          {precioBoleto > 0 && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                Total a pagar:{" "}
+                {calcBulkTotal(successData.tickets.length, precioBoleto).toLocaleString("es-MX", {
+                  style: "currency",
+                  currency: "MXN",
+                })}
+              </Typography>
+              {getDiscountPct(successData.tickets.length) > 0 && (
+                <Chip
+                  label={`-${getDiscountPct(successData.tickets.length)}%`}
+                  color="success"
+                  size="small"
+                />
+              )}
+            </Box>
+          )}
           <Button
             variant="contained"
             color="success"
