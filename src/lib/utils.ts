@@ -9,10 +9,11 @@ export function formatTicketNumber(number: number, total: number): string {
 
 /** Bulk discount tiers — percentages fixed regardless of ticket price. */
 export const DISCOUNT_TIERS = [
-  { count: 1,  discountPct: 0  },
-  { count: 5,  discountPct: 20 },
-  { count: 10, discountPct: 20 },
-  { count: 20, discountPct: 25 },
+  { count: 1,  discountPct: 0    },
+  { count: 2,  discountPct: 15   },
+  { count: 5,  discountPct: 20   },
+  { count: 10, discountPct: 20   },
+  { count: 20, discountPct: 37.5 },
 ] as const;
 
 /** Returns the best applicable discount % for a given ticket count. */
