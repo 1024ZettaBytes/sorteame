@@ -110,7 +110,7 @@ export default async function RaffleDetailPage({ params }: Props) {
       <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
         Boletos apartados y pagados
       </Typography>
-      <AdminTicketTable raffleId={raffle.id} tickets={ticketRows} />
+      <AdminTicketTable raffleId={raffle.id} raffleName={raffle.nombre} tickets={ticketRows} />
     </Box>
   );
 }

@@ -115,16 +115,44 @@ export async function getRandomAvailableTickets(
 
 /**
  * Marks a PENDIENTE ticket as PAGADO (admin only).
+ * Returns participant info when ALL of that participant's tickets in the raffle are now paid.
  */
-export async function marcarComoPagado(
-  ticketId: string
-): Promise<{ success: boolean; error?: string }> {
+export async function marcarComoPagado(ticketId: string): Promise<{
+  success: boolean;
+  error?: string;
+  allPaid?: boolean;
+  participant?: { name: string; phone: string; tickets: string[] };
+}> {
   try {
-    await prisma.ticket.update({
+    const updated = await prisma.ticket.update({
       where: { id: ticketId, estatus: TicketStatus.PENDIENTE },
       data: { estatus: TicketStatus.PAGADO },
+      include: { participant: true },
     });
-    return { success: true };
+
+    if (!updated.participantId || !updated.participant) {
+      return { success: true, allPaid: false };
+    }
+
+    // Check whether all tickets for this participant in this raffle are now paid
+    const siblingTickets = await prisma.ticket.findMany({
+      where: { raffleId: updated.raffleId, participantId: updated.participantId },
+      select: { estatus: true, numero: true },
+    });
+
+    const allPaid = siblingTickets.every((t) => t.estatus === TicketStatus.PAGADO);
+
+    if (!allPaid) return { success: true, allPaid: false };
+
+    return {
+      success: true,
+      allPaid: true,
+      participant: {
+        name: updated.participant.nombreCompleto,
+        phone: updated.participant.telefono,
+        tickets: siblingTickets.map((t) => t.numero).sort(),
+      },
+    };
   } catch {
     return { success: false, error: "No se pudo actualizar el ticket." };
   }

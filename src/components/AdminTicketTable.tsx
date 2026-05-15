@@ -7,11 +7,17 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Snackbar,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import { marcarComoPagado } from "@/actions/tickets";
 import { useRouter } from "next/navigation";
 
@@ -28,6 +34,7 @@ type TicketRow = {
 
 type Props = {
   raffleId: string;
+  raffleName: string;
   tickets: TicketRow[];
 };
 
@@ -37,7 +44,7 @@ const statusColors: Record<TicketStatus, "default" | "warning" | "success"> = {
   PAGADO: "success",
 };
 
-export default function AdminTicketTable({ raffleId, tickets }: Props) {
+export default function AdminTicketTable({ raffleName, tickets }: Props) {
   const router = useRouter();
   const [loadingId, setLoadingId] = React.useState<string | null>(null);
   const [snack, setSnack] = React.useState<{ open: boolean; message: string; severity: "success" | "error" }>({
@@ -45,6 +52,11 @@ export default function AdminTicketTable({ raffleId, tickets }: Props) {
     message: "",
     severity: "success",
   });
+  const [waModal, setWaModal] = React.useState<{
+    open: boolean;
+    participantName: string;
+    waLink: string;
+  }>({ open: false, participantName: "", waLink: "" });
 
   async function handleMarkPaid(ticketId: string) {
     setLoadingId(ticketId);
@@ -52,7 +64,21 @@ export default function AdminTicketTable({ raffleId, tickets }: Props) {
     setLoadingId(null);
     if (result.success) {
       setSnack({ open: true, message: "Ticket marcado como PAGADO.", severity: "success" });
-      router.refresh();
+      if (result.allPaid && result.participant) {
+        const { name, phone, tickets: nums } = result.participant;
+        const ticketList = nums.join(", ");
+        const msg = encodeURIComponent(
+          `Hola ${name}! Tus boletos ${ticketList} del sorteo "${raffleName}" han sido registrados como pagados satisfactoriamente. ¡Muchas gracias y mucha suerte!`
+        );
+        const cleanPhone = phone.replace(/\D/g, "");
+        setWaModal({
+          open: true,
+          participantName: name,
+          waLink: `https://wa.me/${cleanPhone}?text=${msg}`,
+        });
+      } else {
+        router.refresh();
+      }
     } else {
       setSnack({ open: true, message: result.error ?? "Error.", severity: "error" });
     }
@@ -140,6 +166,47 @@ export default function AdminTicketTable({ raffleId, tickets }: Props) {
           {snack.message}
         </Alert>
       </Snackbar>
+
+      {/* WhatsApp notification modal */}
+      <Dialog
+        open={waModal.open}
+        onClose={() => { setWaModal((m) => ({ ...m, open: false })); router.refresh(); }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <CheckCircleIcon color="success" />
+          Todos los boletos pagados
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 1 }}>
+            Todos los boletos de <strong>{waModal.participantName}</strong> han sido marcados como pagados.
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            ¿Deseas enviar una notificación al cliente por WhatsApp confirmándole el pago?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button
+            onClick={() => { setWaModal((m) => ({ ...m, open: false })); router.refresh(); }}
+            color="inherit"
+          >
+            Ahora no
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<WhatsAppIcon />}
+            href={waModal.waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            component="a"
+            onClick={() => { setTimeout(() => { setWaModal((m) => ({ ...m, open: false })); router.refresh(); }, 500); }}
+          >
+            Enviar notificación
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
