@@ -74,7 +74,7 @@ export default function AdminTicketTable({ raffleName, tickets }: Props) {
         setWaModal({
           open: true,
           participantName: name,
-          waLink: `https://wa.me/${cleanPhone}?text=${msg}`,
+          waLink: `https://wa.me/+52${cleanPhone}?text=${msg}`,
         });
       } else {
         router.refresh();
