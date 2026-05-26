@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { deleteFromS3 } from "@/lib/s3";
 import { formatTicketNumber } from "@/lib/utils";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
@@ -80,10 +81,37 @@ export async function deleteRaffle(
   if (!session?.user) return { success: false, error: "No autorizado." };
 
   try {
+    // Delete images from S3
+    const images = await prisma.raffleImage.findMany({ where: { raffleId } });
+    for (const img of images) {
+      try { await deleteFromS3(img.key); } catch { /* ignore */ }
+    }
     await prisma.raffle.delete({ where: { id: raffleId } });
     revalidatePath("/admin/raffles");
     return { success: true };
   } catch {
     return { success: false, error: "No se pudo eliminar el sorteo." };
+  }
+}
+
+/**
+ * Deletes a single raffle image from S3 and database.
+ */
+export async function deleteRaffleImage(
+  imageId: string
+): Promise<{ success: boolean; error?: string }> {
+  const session = await auth();
+  if (!session?.user) return { success: false, error: "No autorizado." };
+
+  try {
+    const image = await prisma.raffleImage.findUnique({ where: { id: imageId } });
+    if (!image) return { success: false, error: "Imagen no encontrada." };
+
+    await deleteFromS3(image.key);
+    await prisma.raffleImage.delete({ where: { id: imageId } });
+    revalidatePath(`/admin/raffles/${image.raffleId}`);
+    return { success: true };
+  } catch {
+    return { success: false, error: "No se pudo eliminar la imagen." };
   }
 }

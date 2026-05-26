@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import AdminTicketTable from "@/components/AdminTicketTable";
+import RaffleImageUpload from "@/components/RaffleImageUpload";
 import { TicketStatus } from "@prisma/client";
 import Link from "next/link";
 
@@ -28,6 +29,7 @@ export default async function RaffleDetailPage({ params }: Props) {
   const raffle = await prisma.raffle.findUnique({
     where: { id },
     include: {
+      images: { orderBy: { order: "asc" } },
       tickets: {
         include: { participant: true },
         orderBy: { numero: "asc" },
@@ -107,6 +109,18 @@ export default async function RaffleDetailPage({ params }: Props) {
       </Grid>
 
       {/* Ticket table */}
+      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+        Imágenes del sorteo
+      </Typography>
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <RaffleImageUpload
+            raffleId={raffle.id}
+            existingImages={raffle.images.map((img) => ({ id: img.id, key: img.key }))}
+          />
+        </CardContent>
+      </Card>
+
       <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
         Boletos apartados y pagados
       </Typography>

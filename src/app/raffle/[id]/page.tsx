@@ -8,6 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import RaffleParticipantView from "@/components/RaffleParticipantView";
+import RaffleImageGallery from "@/components/RaffleImageGallery";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function PublicRafflePage({ params }: Props) {
   const raffle = await prisma.raffle.findUnique({
     where: { id },
     include: {
+      images: { orderBy: { order: "asc" } },
       _count: { select: { tickets: true } },
       tickets: { select: { estatus: true } },
     },
@@ -57,6 +59,13 @@ export default async function PublicRafflePage({ params }: Props) {
             })}
           </Typography>
         </Box>
+
+        {/* Image gallery */}
+        {raffle.images.length > 0 && (
+          <RaffleImageGallery
+            images={raffle.images.map((img) => ({ id: img.id, key: img.key }))}
+          />
+        )}
 
         {/* Stats 
         <Grid container spacing={2} sx={{ mb: 3 }}>

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Raffle" ADD COLUMN     "precioBoleto" DOUBLE PRECISION NOT NULL DEFAULT 0;
