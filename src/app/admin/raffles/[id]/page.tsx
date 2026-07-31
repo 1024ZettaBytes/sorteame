@@ -11,9 +11,9 @@ import {
 } from "@mui/material";
 import AdminTicketTable from "@/components/AdminTicketTable";
 import RaffleImageUpload from "@/components/RaffleImageUpload";
+import RaffleEditDialog from "@/components/RaffleEditDialog";
 import { TicketStatus } from "@prisma/client";
 import Link from "next/link";
-
 export const dynamic = "force-dynamic";
 
 type Props = {
@@ -66,9 +66,16 @@ export default async function RaffleDetailPage({ params }: Props) {
         </Link>
       </Box>
 
-      <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-        {raffle.nombre}
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          {raffle.nombre}
+        </Typography>
+        <RaffleEditDialog
+          raffleId={raffle.id}
+          nombre={raffle.nombre}
+          fechaSorteo={raffle.fechaSorteo.toISOString()}
+        />
+      </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Fecha: {new Date(raffle.fechaSorteo).toLocaleDateString("es-MX", {
           weekday: "long",

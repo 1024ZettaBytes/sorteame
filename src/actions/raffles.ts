@@ -115,3 +115,37 @@ export async function deleteRaffleImage(
     return { success: false, error: "No se pudo eliminar la imagen." };
   }
 }
+
+/**
+ * Modify raffle basic iinformation (name, date)
+ */
+export async function modifyRaffle(
+  raffleId: string,
+  newName: string,
+  newDate: string
+): Promise<{ success: boolean; error?: string }> {
+  const session = await auth();
+  if (!session?.user) return { success: false, error: "No autorizado." };
+
+  const nombre = newName.trim();
+  const fechaSorteo = new Date(newDate);
+
+  if (!nombre) return { success: false, error: "El nombre del sorteo es obligatorio." };
+  if (Number.isNaN(fechaSorteo.getTime())) {
+    return { success: false, error: "La fecha del sorteo es inválida." };
+  }
+
+  try {
+    await prisma.raffle.update({
+      where: { id: raffleId },
+      data: { nombre, fechaSorteo },
+    });
+    revalidatePath("/admin");
+    revalidatePath("/admin/raffles");
+    revalidatePath(`/admin/raffles/${raffleId}`);
+    revalidatePath(`/raffle/${raffleId}`);
+    return { success: true };
+  } catch {
+    return { success: false, error: "No se pudo modificar la información del sorteo." };
+  }
+}
